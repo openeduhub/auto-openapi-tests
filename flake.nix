@@ -56,6 +56,10 @@
             exclude = [ (nix-filter.matchExt "pyc") ];
           };
           propagatedBuildInputs = (python-packages-build python.pkgs);
+          prePatch = ''
+            substituteInPlace auto_openapi_tests/run.py \
+              --replace "tests/" "${./tests}/"
+          '';
         };
 
       in rec {
