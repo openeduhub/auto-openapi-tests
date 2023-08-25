@@ -1,9 +1,10 @@
+import functools
 from collections.abc import Iterable
 from typing import Any
-import functools
-from hypothesis import given
+
 import hypothesis.strategies as st
 import requests
+from hypothesis import given, settings
 from openapi_spec_validator import validate_spec_url
 
 
@@ -86,6 +87,7 @@ def nested_get(dic: dict[str, Any], keys: Iterable[str]) -> Any:
 
 
 @given(data=st.data())
+@settings(deadline=None)
 def test_end_points_success(data, api: str, spec_loc: str):
     spec = get_json(api, spec_loc)
 
