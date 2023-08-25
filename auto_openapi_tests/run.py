@@ -6,10 +6,19 @@ import pytest
 from auto_openapi_tests._version import __version__
 
 
-def run(api: str, openapi_loc: str) -> int | pytest.ExitCode:
+def run(api: str, openapi_loc: str, skip_endpoints: list[str]) -> int | pytest.ExitCode:
     print(f"running on {api}")
     return pytest.main(
-        ["-s", "tests/test_service.py", "--api", api, "--spec-loc", openapi_loc]
+        [
+            "-s",
+            "tests/test_service.py",
+            "--api",
+            api,
+            "--spec-loc",
+            openapi_loc,
+            "--skip-endpoints",
+            str(skip_endpoints),
+        ]
     )
 
 
@@ -30,6 +39,14 @@ def main():
         type=str,
     )
     parser.add_argument(
+        "--skip-endpoints",
+        action="store",
+        nargs="*",
+        default=[],
+        help="The end-points of the API to not test",
+        type=str,
+    )
+    parser.add_argument(
         "--version",
         action="version",
         version="%(prog)s {version}".format(version=__version__),
@@ -38,7 +55,7 @@ def main():
     # read passed CLI arguments
     args = parser.parse_args()
 
-    sys.exit(run(args.api, args.spec_loc))
+    sys.exit(run(args.api, args.spec_loc, args.skip_endpoints))
 
 
 if __name__ == "__main__":

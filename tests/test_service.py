@@ -46,10 +46,12 @@ def json_object(draw, schema: dict[str, Any], version: str) -> dict[str, Any]:
                     exclude_max = prop_spec.get("exclusiveMaximum", False)
                     # starting with openapi version 3.1.0,
                     # exclusive... is no longer a bool
-                    if version >= "3.1.0":
+                    if type(exclude_min) != bool:
                         min_value = min_value or exclude_min
-                        max_value = max_value or exclude_max
                         exclude_min = "exclusiveMinimum" in prop_spec
+
+                    if type(exclude_max) != bool:
+                        max_value = max_value or exclude_max
                         exclude_max = "exclusiveMaximum" in prop_spec
 
                     value = draw(
@@ -88,13 +90,16 @@ def nested_get(dic: dict[str, Any], keys: Iterable[str]) -> Any:
 
 @given(data=st.data())
 @settings(deadline=None)
-def test_end_points_success(data, api: str, spec_loc: str):
+def test_end_points_success(data, api: str, spec_loc: str, skip_endpoints: list[str]):
     spec = get_json(api, spec_loc)
 
     if not "paths" in spec:
         return
 
     for end_point, end_point_requests in spec["paths"].items():
+        if end_point in skip_endpoints:
+            continue
+
         for request_type, request_spec in end_point_requests.items():
             if request_type == "get":
                 request_fun = functools.partial(requests.get, url=api + end_point)
