@@ -7,7 +7,6 @@ from auto_openapi_tests._version import __version__
 
 
 def run(api: str, openapi_loc: str, skip_endpoints: list[str]) -> int | pytest.ExitCode:
-    print(f"running on {api}")
     return pytest.main(
         [
             "-s",
