@@ -1,0 +1,39 @@
+#+title: auto-openapi-tests
+#+EXPORT_EXCLUDE_TAGS: noexport
+
+Automatically test web-services with [[https://www.openapis.org/][OpenAPI]] specifications, utilizing [[https://docs.pytest.org/en/7.4.x/][pytest]] and [[https://hypothesis.works/][hypothesis]].
+
+When run, a series of tests will be automatically generated and run based on the OpenAPI specification of the given web-service. If a test fails, ~hypothesis~ will find and return a minimal example that causes the found issue.
+
+Currently, the following is implemented:
+- Check, whether the specification is a valid OpenAPI specification, using [[https://github.com/python-openapi/openapi-spec-validator][openapi-spec-validator]]
+- Parse the specification and automatically generate tests according to the input types of each end-point. This test is considered to fail when the response code is different from 200. For this, the following types are supported:
+  - ~enum~
+  - ~string~ (i.e. text),
+    with minimum / maximum length
+  - ~number~,
+    with minimum / maximum value (optionally exclusive)
+  - ~boolean~
+
+* Usage
+
+** With Nix
+
+To run the tests on any running web-service, use
+#+begin_src sh
+nix run github:openeduhub/auto-openapi-tests -- --api "http://<web-service>" --spec-loc "<openapi-json-endpoint>"
+#+end_src
+
+See ~nix run github:openeduhub/auto-openapi-tests -- --help~ for more information on possible command line arguments.
+
+** Installed through pip
+
+Clone this repository, then install the application with
+#+begin_src sh
+pip install <path/to/repository>
+#+end_src
+
+Now, the application can be run through
+#+begin_src sh
+auto-openapi-tests
+#+end_src
