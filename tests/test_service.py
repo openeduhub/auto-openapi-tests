@@ -30,8 +30,8 @@ def json_object(draw, schema: dict[str, Any], version: str) -> dict[str, Any]:
     result = dict()
     for prop, prop_spec in schema["properties"].items():
         if "enum" in prop_spec:
-            values = list(prop_spec["enum"].values())
-            value = draw(st.one_of(values))
+            values = prop_spec["enum"]
+            value = draw(st.sampled_from(values))
 
         else:
             match prop_spec["type"]:
