@@ -51,7 +51,7 @@ def main():
     parser.add_argument(
         "--spec-loc",
         action="store",
-        default="openapi.json",
+        default="/openapi.json",
         help="The subdomain of the API that returns the OpenAPI specification",
         type=str,
     )

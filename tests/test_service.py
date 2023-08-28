@@ -8,21 +8,13 @@ from hypothesis import given, settings
 from openapi_spec_validator import validate_spec_url
 
 
-def get(*args: str) -> requests.Response:
-    return requests.get("/".join(args))
-
-
-def get_json(*args: str):
-    return get(*args).json()
-
-
 def test_get_openapi_spec(api: str, spec_loc: str):
-    r = get(api, spec_loc)
+    r = requests.get(api + spec_loc)
     assert r.status_code == 200
 
 
 def test_openapi_spec_is_valid(api: str, spec_loc: str):
-    validate_spec_url(f"{api}/{spec_loc}")
+    validate_spec_url(api + spec_loc)
 
 
 @st.composite
@@ -91,7 +83,7 @@ def nested_get(dic: dict[str, Any], keys: Iterable[str]) -> Any:
 @given(data=st.data())
 @settings(deadline=None)
 def test_end_points_success(data, api: str, spec_loc: str, skip_endpoints: list[str]):
-    spec = get_json(api, spec_loc)
+    spec = requests.get(api + spec_loc).json()
 
     if not "paths" in spec:
         return
