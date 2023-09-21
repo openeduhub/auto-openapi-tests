@@ -90,7 +90,7 @@ def main():
     parser.add_argument(
         "--version",
         action="version",
-        version="%(prog)s {version}".format(version=__version__),
+        version=f"%(prog)s {__version__}",
     )
 
     # read passed CLI arguments
