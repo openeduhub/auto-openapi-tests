@@ -4,7 +4,7 @@ from typing import Any
 
 import hypothesis.strategies as st
 import requests
-from hypothesis import given, settings
+from hypothesis import given
 from openapi_spec_validator import validate_spec_url
 
 
@@ -126,7 +126,6 @@ spec = None
 
 
 @given(data=st.data())
-@settings(deadline=None)
 def test_end_points_success(data, api: str, spec_loc: str, skip_endpoints: list[str]):
     # only access the openapi spec once
     global spec
