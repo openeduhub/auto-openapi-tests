@@ -2,7 +2,7 @@
   description = "An automatic testing suite for OpenAPI services";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11";
     flake-utils.url = "github:numtide/flake-utils";
     nix-filter.url = "github:numtide/nix-filter";
   };
@@ -62,7 +62,8 @@
           '';
         };
 
-      in rec {
+      in
+      rec {
         # the packages that we can build
         packages = {
           default = python-package;
