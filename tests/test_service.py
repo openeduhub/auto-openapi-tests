@@ -1,6 +1,6 @@
 import functools
 from collections.abc import Iterable
-from typing import Any
+from typing import Any, Optional
 
 import hypothesis.strategies as st
 import requests
@@ -70,6 +70,37 @@ def draw_from_type(draw, prop_spec: dict[str, Any]) -> Any:
                     exclude_max=exclude_max,
                     allow_infinity=False,
                 )
+            )
+
+        case "integer":
+            min_value: Optional[int] = prop_spec.get("minimum", None)
+            max_value: Optional[int] = prop_spec.get("maximum", None)
+            exclude_min: bool | int = prop_spec.get("exclusiveMinimum", False)
+            exclude_max: bool | int = prop_spec.get("exclusiveMaximum", False)
+            # starting with openapi version 3.1.0,
+            # exclusive_... is no longer a bool
+            if type(exclude_min) != bool:
+                min_value = min_value or exclude_min
+                exclude_min = "exclusiveMinimum" in prop_spec
+
+            if type(exclude_max) != bool:
+                max_value = max_value or exclude_max
+                exclude_max = "exclusiveMaximum" in prop_spec
+
+            multiple_of: int = prop_spec.get("multipleOf", 1)
+
+            return (
+                draw(
+                    st.integers(
+                        min_value=((min_value // multiple_of) + exclude_min)
+                        if min_value is not None
+                        else None,
+                        max_value=((max_value // multiple_of) - exclude_max)
+                        if max_value is not None
+                        else None,
+                    )
+                )
+                * multiple_of
             )
 
         case "boolean":
