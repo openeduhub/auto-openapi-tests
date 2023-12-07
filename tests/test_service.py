@@ -18,7 +18,7 @@ def test_openapi_spec_is_valid(api: str, spec_loc: str):
 
 
 @st.composite
-def draw_from_type(draw, prop_spec: dict[str, Any]) -> Any:
+def draw_from_type(draw, prop_spec: dict[str, Any], global_spec: dict[str, Any]) -> Any:
     if "enum" in prop_spec:
         # enums specify their possible values directly
         values = prop_spec["enum"]
@@ -27,7 +27,7 @@ def draw_from_type(draw, prop_spec: dict[str, Any]) -> Any:
     @st.composite
     def handle_composite(draw, key: str):
         specs: list[dict[str, Any]] = prop_spec[key]
-        return draw(st.one_of(*[draw_from_type(spec) for spec in specs]))
+        return draw(st.one_of(*[draw_from_type(spec, global_spec) for spec in specs]))
 
     for key in ["anyOf", "oneOf", "allOf"]:
         # handle all elements of such unions identically
@@ -120,13 +120,21 @@ def draw_from_type(draw, prop_spec: dict[str, Any]) -> Any:
                 return draw(
                     st.lists(
                         st.one_of(
-                            *[draw_from_type(spec) for spec in sub_spec["oneOf"]]
+                            *[
+                                draw_from_type(spec, global_spec)
+                                for spec in sub_spec["oneOf"]
+                            ]
                         ),
                         **constraints,
                     )
                 )
 
-            return draw(st.lists(draw_from_type(sub_spec), **constraints))
+            if "$ref" in sub_spec:
+                # de-reference
+                reference = sub_spec["$ref"].split("/")[1:]
+                sub_spec = nested_get(global_spec, reference)
+
+            return draw(st.lists(draw_from_type(sub_spec, global_spec), **constraints))
 
         case not_matched:
             raise NotImplementedError(
@@ -135,9 +143,11 @@ def draw_from_type(draw, prop_spec: dict[str, Any]) -> Any:
 
 
 @st.composite
-def json_object(draw, schema: dict[str, Any], version: str) -> dict[str, Any]:
+def json_object(
+    draw, schema: dict[str, Any], global_spec: dict[str, Any]
+) -> dict[str, Any]:
     return {
-        prop: draw(draw_from_type(prop_spec))
+        prop: draw(draw_from_type(prop_spec, global_spec))
         for prop, prop_spec in schema["properties"].items()
     }
 
@@ -194,7 +204,7 @@ def test_end_points_success(data, api: str, spec_loc: str, skip_endpoints: list[
 
             data_schema = nested_get(spec, data_schema_ref.split("/"))
             generated_data = data.draw(
-                json_object(schema=data_schema, version=spec["openapi"])
+                json_object(schema=data_schema, global_spec=spec)
             )
 
         r = request_fun(json=generated_data)
